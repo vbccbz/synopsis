@@ -1,35 +1,4 @@
-﻿// указатели, new, delete
-#if 0
-
-#include <iostream>
-using namespace std;
-
-int main(void) {
-	int* pa = 0;
-	pa = NULL;
-	pa = nullptr;  // for correct overloading (-std=c++11)
-
-	pa = new int;
-	delete pa;
-
-	int size = 5;
-	pa = new int[size];
-	delete[] pa;
-
-	pa = new int(1);
-	std::cout << *pa << std::endl;
-	delete pa;
-
-	int A1[] = { 1, 2, 3 };
-	int A2[]{ 1, 2, 3 };
-
-	int const sizeC = 3;
-	int constexpr sizeCCC = 3;  //{3}
-	int A3[sizeC]{ 1, 2, 3 };
-
-	return 0;
-}
-#endif
+﻿
 // дружественные функции
 #if 0
 
@@ -148,7 +117,7 @@ int main(void) {
 #endif
 
 #endif
-// дружественный метод 
+// дружественный метод
 #if 0
 // френд метод может работать с прайвт полями у объекта, указателя или ссылки 
 
@@ -268,7 +237,7 @@ int main(int argc, char* argv[]) {
 // в объявлениях возможны только объявления (и некоторые определения), а не инструции
 // соответственно, опять же, смысл от дружбы проявляется в методах друга - если в этих методах есть объект, указатель или ссылка - то у него есть доступ к прайвет.
 
-// дружественный класс из философии 
+// дружественный класс из философии
 #if 0
 
 #include <iostream>
@@ -386,11 +355,12 @@ int main() {
 #endif
 
 #endif
-// сheshire
+// сheshire 294
 #if 0
 // main.cpp
-#include "handle.h"
 #include <iostream>
+
+#include "handle.h"
 int main(void) {
 	Handle h;
 	h.initialize();
@@ -465,6 +435,7 @@ int main(void) {
 
 	return 0;
 }
+#endif
 // aggregate initialization simplecode
 #if 0
 #include <iostream>
@@ -522,10 +493,9 @@ int main(void) {
 	delete[] arr;
 	return 0;
 }
-#endif
 
 #endif
-// union 
+// union
 #if 0
 // union могут быть безымянными в с++ и в с, если входят в состав чего-нибудь (в отличие от enum, которые могут быть безымянными всегда)
 #include <iostream>
@@ -559,7 +529,7 @@ int main(void) {
 
 	return 0;
 }
-#endif	
+#endif
 // enum
 #if 0
 #include <iostream>
@@ -658,7 +628,7 @@ Namespaces provide a method for preventing name conflicts in large projects.
 int main(void) {
 	// Disable variable-length automatic arrays in gcc: -Werror=vla or -Wvla
 	// vla - like built-in feature for dynamic array, depricated feature.
-#define vla 
+#define vla
 #ifdef vla
 	int a = 1;
 	int arra[a]; // can be vla in C and in Cpp
@@ -799,7 +769,7 @@ int main(void) {
 }
 #endif
 
-// конструкторы essential
+// ctor essential 1
 #if 0
 // К этому момент нужно чётко представлять механизмы передачи и возврата больших данных через стек в простом С-стиле.
 // -fno-elide-constructors
@@ -866,10 +836,16 @@ int main(void) {
 	v(a2);// const&
 	v(f());// const& или &&
 
+	//! A a5.A();
+	//! expected initializer before '.' token
+	//! f().A();
+	//! f().A(2, 'z');
+	//! f()A();
+	//! f()(2, 'z');
 	return 0;
 }
 #endif
-// конструкторы essential 2
+// ctor essential 2
 #if 0
 #include <iostream>
 using namespace std;
@@ -895,33 +871,42 @@ public:
 
 int HowMany2::counter = 0;
 
-HowMany2 a(void) {
-	HowMany2 h(1); return h;// with optimization is nrvo
-	//return HowMany2("h"); // with optimization is rvo
-	//without optimization HowMany2 h(1); return h; is equivalent return HowMany2("h");
+HowMany2 foo1 (void) {
+#if 1
+	HowMany2 h (123); 
+	return h;
+#else
+	return HowMany2(123);// rvo
+#endif
+// Читай про различия  return value optimization и named return value optimization.
+
 }
 
-HowMany2 b(HowMany2 x) {
+HowMany2 foo2 (HowMany2 x) {
 	return x;
 }
 
 int main(void) {
-	// a();
+	// foo1 ();
 
-	// HowMany2 h1 = a();
+	// HowMany2 h1 (foo1());
 
-	// HowMany2 h2(2);
+	// HowMany2 h2 (2);
 
-	// HowMany2 h3 = b(h2);
-	// without opt copy h2 to x >>>> copy x to temporary >>>> copy temporary to h3
-	// with    opt copy h2 to x >>>> copy x to h3       
+	// HowMany2 h3 (foo2 (h2));
+	// without opt copy: h2 to x >>>> copy x to temporary >>>> copy temporary to h3
+	// with    opt copy: h2 to x >>>>                     >>>> copy x to h3       
 
-	// b(h1);
-	// without opt copy h1 to x >>>> copy x to temporary 
-	// with    opt copy h1 to x >>>> copy x to temporary 
+	// foo2 (h1);
+	// without opt copy: h1 to x >>>> copy x to temporary 
+	// with    opt copy: h1 to x >>>> copy x to temporary 
 
 	cout << "end\n";
 }
+
+#endif
+// ctor essential 3
+#if 0
 
 #endif
 // мусор конструктор перемещения &&
@@ -1025,7 +1010,7 @@ int main(void) {
 }
 #endif
 // особенности дефолтных конструкторов
-#if 0 
+#if 0
 #include <iostream>
 #include <string>
 using namespace std;
@@ -1057,7 +1042,7 @@ int main(void) {
 // странный прикол с  массивным мембером
 #if 0
 #include <stdio.h>
-#define ???
+#define ? ? ?
 struct test {
 	int i[10];
 	int j;
@@ -1079,19 +1064,668 @@ int main() {
 #ifdef C
 	foo().i[0] = 1;
 	fooc().i[0] = 1;
-#endif // C
+#endif  // C
 #ifdef CPP
 	foo().i[0] = 1; // но ведь foo().j = 1; не работает!!! и это не должно работать.
 	//! fooc().i[0] = 1;
-#endif // CPP
+#endif  // CPP
 
 	return 0;
 }
 #endif
 
-// the constructor initializer list 
+// const object
 #if 0
-// it was originally developed for use in inheritance 
+// инициализация по умолчанию нулем, конечно же, не работает
+class X {
+	int i;
+public:
+	X(int ii);
+	int f(void);
+	int fc(void) const;
+};
+X::X(int ii) : i(ii) {
+	;
+}
+int X::f(void) {
+	++i;
+	return i;
+}
+int X::fc(void) const {
+	//! ++i;
+	return i;
+}
+
+int main(void) {
+	X x1(10);
+	x1.f();
+	x1.fc();
+	const X x2(20);
+	//! x2.f();
+	x2.fc();
+	return 0;
+}
+#endif
+
+// operator =  and ctor
+#if 0
+class MyClass {
+	int data;
+
+public:
+	MyClass (void)  { data = 0; }
+	MyClass (int d) { data = d; }
+	MyClass (MyClass const & other) { data = other.data; }
+	MyClass & operator= (MyClass const & other) { data = other.data; return *this;	}
+	~MyClass(void) { ; }
+};
+int main(void) {
+	//! MyClass a(); // Это можно было бы уточнить намного раньше, но здесь это к месту из-за нюансов с =. Выглядит логично, но не работает, потому что это потребовало бы чрезмерной доработки анализатора, потому что выглядит как объявление функции. 
+	// MyClass a; without parentheses void constructor is called.
+	// MyClass a(1); with (value) non-void constructor is called.
+
+	MyClass a;
+	MyClass b(5);
+	MyClass c(b);
+	a = b;      // a.operator=(b);
+	a = b = c;  // a.operator=(b.operator=(c));
+
+	MyClass d = c;  // the copying constr works, because d has not created yet
+
+	return 0;
+}
+#endif
+// operator = and temporary
+#if 0
+class X {
+  int i;
+public:
+  X(int ii = 0);
+  // void operator= ( X & ) ;
+  void operator= ( X const & ) ;
+  // void operator= ( X & ) const;
+  // void operator= ( X const & ) const;
+};
+
+  X::X (int ii) { i = ii; }
+	void X::operator= (X const & ref) { ; }
+
+X f6 (void) { 
+	return X(123); 
+	// local data1, X::X (123), 
+	// local data2, X::X(X const &)
+	// copy data2 in register
+}
+int main (void) {
+  f6() = ( X(1) ); // X::X (1), f6(), from register to stack, X::operator= (X const &)
+	//! f6() = X(1); in Eckel ;-)
+  return 0;
+}
+#endif
+// operator = 3 with automatic conversion
+#if 0
+class ByteE { 
+  unsigned char b;
+public:
+  explicit ByteE(unsigned char bb = 0) : b(bb) {}
+  ByteE & operator= (const ByteE & right) {
+    if(this == &right) return *this;
+    b = right.b;
+    return *this;
+  }
+  ByteE & operator= (const int & right) { // or change to int 
+    b = right;
+    return *this;
+  }
+}; 
+
+class Byte { 
+  unsigned char b;
+public:
+  Byte(unsigned char bb = 0) : b(bb) {}
+  Byte & operator= (const Byte & right) {
+    if(this == &right) return *this;
+    b = right.b;
+    return *this;
+  }
+}; 
+
+int main(void) {
+  ByteE b1(1), b2(2);
+  b1 = b2; 
+  b1 = 2; 
+	
+	Byte b3(3), b4(4);
+  b3 = b4; 
+  b3 = 4; // automatic conversion via corresponding constructor
+} 
+#endif
+
+// перегрузка оператора [], ссылки с массивами
+#if 0
+#include <iostream>
+using namespace std;
+
+class TestClass {
+public:
+	int& operator[](int index) {
+		return arr[index];
+	}
+
+private:
+	int arr[5]{ 11, 22, 33, 44, 55 };
+};
+int main(void) {
+	TestClass a;
+	cout << a[0] << endl;// 11 
+	cout << a.operator[](0) << endl;// 11  
+	a[0] = 66;
+	cout << a[0] << endl;// 66 
+	return 0;
+}
+#endif
+// перегрузка операторов ++
+#if 0
+#include <iostream>
+using namespace std;
+
+class Point {
+private:
+	int x;
+	int y;
+
+public:
+	Point(void) {
+		cout << this << " cons void" << endl;
+		x = 0;
+		y = 0;
+	}
+	Point(int x, int y) {
+		cout << this << " cons int int" << endl;
+		this->x = x;
+		this->y = y;
+	}
+	Point(Point const& other) {
+		cout << this << " cons class&" << endl;
+		this->x = other.x;
+		this->y = other.y;
+	}
+	bool operator==(Point const& other) {
+		return bool(this->x == other.x && this->y == other.y);
+	}
+	bool operator!=(Point const& other) {
+		return bool(this->x != other.x && this->y != other.y);
+	}
+	Point operator+(Point const& other) {
+		cout << this << " class operator+ (class&)" << endl;
+		Point sum(this->x + other.x, this->y + other.y);
+		return sum;
+	}
+	Point& operator=(Point const& other) {
+		cout << this << " class& operator= (class&)" << endl;
+		this->x = other.x;
+		this->y = other.y;
+		return *this;
+	}
+	Point& operator++(void) {
+		++this->x;
+		++this->y;
+		return *this;
+	}
+	Point operator++(int value) {
+		Point temp(*this);
+		++this->x;
+		// this->x++;
+		++this->y;
+		// this->y++;
+		return temp;
+	}
+	void print(void) { cout << this->x << ' ' << this->y << endl; }
+	~Point(void) { cout << this << " des" << endl; }
+};
+int main(void) {
+	Point a(1, 2);
+	Point b(3, 4);
+	bool result = (a == b);
+	++a;
+	a++;
+
+	return 0;
+}
+#endif
+// ->
+#if 0
+struct Some {
+  int a;
+  int b;
+};
+
+int main(void){
+  struct Some data;
+  data.a = 0;
+  struct Some * ptr = & data;
+  (*ptr).b = 2;
+
+  return 0;
+}
+main:
+  pushl %ebp
+  movl %esp, %ebp
+  subl $16, %esp
+  movl $0, -12(%ebp)
+  leal -12(%ebp), %eax
+  movl %eax, -4(%ebp)
+  movl -4(%ebp), %eax
+  movl $2, 4(%eax)
+  movl $0, %eax
+  leave
+  ret
+#endif
+// operator->()
+#if 0
+#include <iostream>
+
+class Some {
+public:
+	int a;
+	Some* operator -> (void) {
+		return this;
+	}
+};
+
+int main(void) {
+	Some s;
+	s.a = 1;
+	std::cout << s.a << std::endl;
+
+	Some* ptr;
+	ptr = &s;     //  Some * ptr (&s);
+	(*ptr).a = 2;
+	ptr->a = 2;   
+	std::cout << s.a << std::endl;
+
+	   s.operator->();
+	(*(s.operator->() )).a = 3;
+	(* s.operator->() ) .a = 3;
+	(  s.operator->() )->a = 4;
+	std::cout << s.a << std::endl;
+
+	   s->a                = 4;//! (*s).a = 4;
+	std::cout << s.a << std::endl;
+
+	// .member или ->member  
+	// нельзя (или очень затруднительно по смыслу) представить как sometype function (sometype member) { }
+	// потому что подсчётом оффсета в стеке и арифметикой указателей занимается сам компилятор
+	// а здесь объединяется два оператора -> в одном
+
+	return 0;
+}
+#endif
+
+// указатели, new, delete
+#if 0
+
+// vptr = iptr;//C, C++
+// iptr = vptr;//C
+//! iptr = vptr; // iptr = (int*)vptr; //C++
+
+// A new-expression returns a pointer to an object of the exact type that you
+// asked for.
+
+#include <iostream>
+using namespace std;
+
+class MyClass {
+  int data;
+
+ public:
+  MyClass(void) {
+    cout << "MyClass:MyClass (void)" << endl;
+  }
+  MyClass(int d) {
+    cout << "MyClass:MyClass (int )" <<endl;
+    data = d;
+  }
+  ~MyClass(void) { 
+		cout << "MyClass:~MyClass (void)" <<endl; 
+	}
+};
+
+int main(void) {
+  int* pa = 0;
+  pa = NULL;
+  pa = nullptr;  // for correct overloading (-std=c++11)
+
+  pa = new int;
+  delete pa;
+
+  int size = 5;
+  pa = new int[size];
+  delete[] pa;
+
+  pa = new int(1);
+  std::cout << *pa << std::endl;
+  delete pa;
+
+  int A1[] = {1, 2, 3};
+  int A2[]{1, 2, 3};
+
+  int const sizeC = 3;
+  int constexpr sizeCCC = 3;  //{3}
+  int A3[sizeC]{1, 2, 3};
+
+  MyClass* mcp = 0;
+  mcp = new MyClass(123);
+  delete mcp;
+
+  mcp = new MyClass[3];
+  delete []mcp;
+
+  return 0;
+}
+#endif
+// overloading new and delete 1
+#if 0
+// Call delete for a void* almost certainly going to be a bug if pointer is
+// reffering to a type with destructor, because compiler will not call
+// destructor. Vice versa, but compiler will warn. But operator delete itself
+// have void * parameter by standart. So do not confuse. 
+// new and void* operator new (size_t sz){;}  are not the same thing.
+// new[] and void* operator new[] (size_t sz){;}  are not the same thing.
+// All of this is static function (implicitly).
+
+// new
+// 1. local  overloaded new
+// 2. global overloaded new
+// 3. default new
+
+// new []
+// 1. local  overloaded new []
+// 2. global overloaded new []
+// 3. global overloaded new
+// 4. default new []
+
+#include <stdio.h>
+#include <stdlib.h>
+
+class MyClass {
+  int arr[10];
+
+ public:
+  MyClass(void);
+  ~MyClass(void);
+  void* operator new(size_t sz);
+  void* operator new[](size_t sz);
+  void operator delete(void* m);
+  void operator delete[](void* m);
+};
+
+MyClass::MyClass(void) { ; }
+
+MyClass::~MyClass(void) { ; }
+
+void* MyClass::operator new(size_t sz) {
+  puts("operator MyClass::new");
+  void* m = malloc(sz);
+  if (!m) puts("out of memory");
+  return m;
+}
+void* MyClass::operator new[](size_t sz) {
+  puts("MyClass::operator new[]");
+  void* m = malloc(sz);
+  return m;
+}
+
+void MyClass::operator delete(void* m) {// 'operator delete' takes type 'void*' as first parameter
+  puts("operator delete");
+  free(m);
+}
+void MyClass::operator delete[](void* m) {
+  puts("operator delete");
+  free(m);
+}
+
+void* operator new(size_t sz) {
+  puts("operator new");//Notice that printf( )and puts( )are used rather than iostreams. This is because when an iostream object is created (like the global cin, cout, and cerr), it calls new to allocate memory. With printf(), you don’t get into a deadlock because it doesn’t call new to initialize itself.
+  void* m = malloc(sz);
+  return m;
+}
+void* operator new[](size_t sz) {
+  puts("operator new[]");
+  void* m = malloc(sz);
+  return m;
+}
+
+void operator delete(void* m) { 
+  puts("operator delete");
+  free(m);
+}
+void operator delete[](void* m) {
+  puts("operator delete[]");
+  free(m);
+}
+
+int main(void) {
+  MyClass* ptr = 0;
+  asm("nop");
+
+  ptr = new MyClass;
+  asm("nop");
+  delete ptr;
+  asm("nop");
+
+  ptr = new MyClass[5];
+  asm("nop");
+  delete[] ptr;
+  asm("nop");
+
+  return 0;
+}
+#endif
+// overloading new and delete 2
+#if 0
+#include <new>  // Size_t definition
+using namespace std;
+class Widget {
+  enum { sz = 10 };
+  int i[sz];
+
+ public:
+  Widget() { ; }
+  ~Widget() { ; }
+  void* operator new(size_t sz) {
+    return ::new char[sz]; // return ::operator new (sz);
+  }
+  void* operator new[](size_t sz) {
+    return ::new char[sz];
+  }
+  void operator delete(void* p) {
+    ::delete[] p; // compiler will warn, but it is not a problem, because Widget:delete take responsibility for the good call 1 destructor  
+  }
+  void operator delete[](void* p) {
+    ::delete[] p; // compiler will warn, but it is not a problem, because Widget:delete[] take responsibility for the good call 1 destructor 
+  }
+};
+int main() {
+  Widget* w = new Widget;
+  delete w;
+  Widget* wa = new Widget[25];
+  delete[] wa;
+}
+#endif
+// set_new_handler( )
+#if 0
+#include <cstdlib>   // exit();
+#include <iostream>  // cerr
+#include <new>       // set_new_handler()
+
+using namespace std;
+int count = 0;
+
+void out_of_memory() {
+	cerr << "memory exhausted after " << count << endl;
+	exit(111);
+}
+
+int main() {
+	set_new_handler(out_of_memory);
+	while(1) {
+		count++;
+		new int[100000]; // Exhausts memory
+	}
+  return 0;
+}
+#endif
+// manual exception
+#if 0
+#include <stddef.h>  //size_t
+#include <stdlib.h>  //malloc
+
+#include <iostream>  //cerr
+#include <new>       //bad_alloc
+
+using namespace std;
+
+class Framis {
+  char c[10];
+
+ public:
+  Framis() { ; }
+  ~Framis() { ; }
+  //void* operator new[](size_t) throw(bad_alloc);//-std=c++03
+  void* operator new[](size_t) ;//-std=c++11
+};
+
+//void* Framis::operator new[](size_t sz) throw(bad_alloc) {//-std=c++03
+void* Framis::operator new[](size_t sz) {//-std=c++11
+  if (sz <= 50) {
+    return malloc(sz);
+  }
+  throw bad_alloc();
+}
+
+int main(void) {
+  try {
+    new Framis[22];
+  } catch (bad_alloc) {
+    cerr << "Out of memory!" << endl;
+  }
+  return 0;
+}
+#endif
+// explicit call to constructor and destructor
+#if 0
+#include <iostream>  
+
+using namespace std;
+class Widget {
+  int data;
+
+ public:
+  Widget(void) { 
+    std::cout << "Widget::Widget(void)"<<std::endl; 
+  }
+  ~Widget(void) {
+    std::cout << "Widget::~Widget(void)"<<std::endl; 
+  }
+  
+};
+
+int main() {
+	//! Widget::Widget();
+	Widget();//create temporary, call construcotor for him, immediately call destructor for him
+  
+	Widget w;// declare object, define object and call constructor for him
+  Widget w2();//warning: empty parentheses were disambiguated as a function declaration [-Wvexing-parse]
+  
+	//! w.Widget();
+  w.~Widget();//  w.Widget::~Widget();
+	
+	Widget wp = new Widget;
+	Widget wp2 = new Widget(); // :D
+	delete wp;
+	delete wp2;
+
+	// second call destructor for w 
+	return 0;
+}
+#endif
+// placement new delete
+#if 0
+#include <iostream>  // Size_t definition
+#include <new>       // Size_t definition
+using namespace std;
+class Widget {
+  int data;
+
+ public:
+  Widget() { ; }
+  Widget(int var) { data = var; }
+  ~Widget() { ; }
+  void* operator new(size_t sz, void * p) {
+    return p;
+  }
+};
+
+int main() {
+  char arr [10];
+  for (int i = 0; i<10; ++i) { 
+    std::cout << (int) arr [i] << ' ';
+  }
+  std::cout << std::endl;
+
+  Widget* w = new (arr) Widget(0x20202020);
+  for (int i = 0; i<10; ++i) { 
+    std::cout << (int)arr [i] << ' ';
+  }
+  std::cout << std::endl;
+
+  w->~Widget();// w->Widget::~Widget(); // Explicit destructor call // ONLY use with placement!
+	// delete w; // warning 'void operator delete(void*)' called on unallocated object 'arr' or stderr: free(): invalid pointer
+}
+#endif
+// :D
+#if 0
+#include <iostream> 
+#include <new>       // Size_t definition
+using namespace std;
+class Widget {
+  int data;
+
+ public:
+  Widget() { ; }
+  Widget(int var) { data = var; }
+  ~Widget() { cout << "des" << endl; }
+  // void* operator new(size_t sz, void * p) {
+  //   return p;
+  // }
+  void operator delete(void * p) {
+     ( (Widget*)p )-> Widget::~Widget();
+  }
+};
+
+int main() {
+  char arr [10];
+  for (int i = 0; i<10; ++i) { 
+    std::cout << (int) arr [i] << ' ';
+  }
+  std::cout << std::endl;
+
+  Widget* w = new (arr) Widget(0x20202020);
+  for (int i = 0; i<10; ++i) { 
+    std::cout << (int)arr [i] << ' ';
+  }
+  std::cout << std::endl;
+
+  delete w; // :D
+
+  return 0;
+}
+#endif
+
+// the constructor initializer list 1
+#if 0
+// it was originally developed for use in inheritance
 #include <iostream>
 
 class A {
@@ -1117,7 +1751,7 @@ int main(void) {
 	return 0;
 }
 #endif
-// дичь в constructor initializer list
+// constructor initializer list 2
 #if 0
 #include <iostream>
 class Y {
@@ -1141,7 +1775,9 @@ class Z {
 public:
 	Z(void);
 protected:
-	Y y_;// почему-то влияет последовательность
+	Y y_;// почему-то влияет последовательность 
+	// ой ЛОЛ C14:Order.cpp
+	// the order of constructor calls for member objects is completely unaffected by the order of the calls in the constructor initializer list
 	X x_;
 };
 //↑↑   // Bad: should have listed x_ before y_
@@ -1174,38 +1810,6 @@ private:
 };
 int main(void) {
 	test obj;
-	return 0;
-}
-#endif 
-// const object
-#if 0
-// инициализация по умолчанию нулем, конечно же, не работает
-class X {
-	int i;
-public:
-	X(int ii);
-	int f(void);
-	int fc(void) const;
-};
-X::X(int ii) : i(ii) {
-	;
-}
-int X::f(void) {
-	++i;
-	return i;
-}
-int X::fc(void) const {
-	//! ++i;
-	return i;
-}
-
-int main(void) {
-	X x1(10);
-	x1.f();
-	x1.fc();
-	const X x2(20);
-	//! x2.f();
-	x2.fc();
 	return 0;
 }
 #endif
@@ -1321,6 +1925,7 @@ int MyClass::Count = 0;
 
 //main.c
 #include <iostream>
+
 #include "MyClass.h"
 
 int main(void) {
@@ -1455,7 +2060,7 @@ int main() {
 	cout << Egg::instance()->val() << endl;
 }
 #endif
-// static initialization dependency 
+// static initialization dependency
 #if 0
 //file1
 extern int x;
@@ -1488,177 +2093,335 @@ y 1
 // вообще непонятно как это
 #endif
 
-// operator =  
+// composition 1
 #if 0
-class MyClass {
-	int data;
-
-public:
-	MyClass(void) {
-		data = 0;
-	}
-	MyClass(int d) {
-		data = d;
-	}
-	MyClass(const MyClass& other) {
-		data = other.data;
-	}
-	MyClass& operator=(const MyClass& other) {
-		data = other.data;
-		return *this;
-	}
-	~MyClass(void) {
-		;
-	}
-};
-int main(void) {
-	//! MyClass a(); // Это можно было бы уточнить намного раньше, но здесь это к месту из-за нюансов с =. Выглядит логично, но не работает, потому что это потребовало бы чрезмерной доработки анализатора, потому что выглядит как объявление функции. 
-	// MyClass a; without parentheses void constructor is called.
-	// MyClass a(1); with (value) non-void constructor is called.
-
-	MyClass a;
-	MyClass b(5);
-	MyClass c(b);
-	a = b;      // a.operator=(b);
-	a = b = c;  // a.operator=(b.operator=(c));
-
-	MyClass d = c;  // the copying constr works, because d has not created yet
-
-	return 0;
-}
-#endif
-// перегрузка оператора [], ссылки с массивами
-#if 0
+// the has-a relationship
+// we don't need to use functions of Stack with StringStack itself
+// instead we need to modify function of Stack for our needs in StringStack
 #include <iostream>
+#include <string>
+
 using namespace std;
 
-class TestClass {
+class Stack {
+  struct Link {
+    void* data;
+    Link* next;
+    Link(void* dat, Link* nxt): 
+      data(dat), next(nxt) {}
+  }* head;
 public:
-	int& operator[](int index) {
-		return arr[index];
-	}
+  Stack() : head(0) {
 
-private:
-	int arr[5]{ 11, 22, 33, 44, 55 };
+  }
+  ~Stack() { 
+
+  }
+  void push(void* dat) {
+    head = new Link(dat, head);
+  }
+  void* pop() {
+    if(head == 0) return 0;
+    void* result = head->data;
+    Link* oldHead = head;
+    head = head->next;
+    delete oldHead;
+    return result;
+  }
+  void* peek() const { 
+    return head ? head->data : 0;
+  }
 };
-int main(void) {
-	TestClass a;
-	cout << a[0] << endl;// 11 
-	cout << a.operator[](0) << endl;// 11  
-	a[0] = 66;
-	cout << a[0] << endl;// 66 
-	return 0;
+
+class StringStack  {
+  Stack s;
+ public:
+  void push(string* str) { s.push(str); }
+  string* peek() const { return (string*)s.peek(); }
+  string* pop() { return (string*)s.pop(); }
+  ~StringStack() {
+    string* top = pop();
+    while (top) {
+      delete top;
+      top = pop();
+    }
+  }
+};
+
+int main(void){
+  string line1("Hello!");
+  string line2("I'm string!");
+  
+  StringStack  textlines;
+  textlines.push(new string(line1));
+  textlines.push(new string(line2));
+  
+  string* s;
+  while((s = textlines.pop()) != 0) {
+    cout << *s << endl;
+    delete s; 
+  }
+
+  return 0;
+}
+// template 15 chapter
+#endif
+// composition 2
+#if 0
+class Engine {
+public:
+	void start() const {}
+	void rev() const {}
+	void stop() const {}
+};
+class Wheel {
+public:
+	void inflate(int psi) const {}
+};
+class Window {
+public:
+	void rollup() const {}
+	void rolldown() const {}
+};
+class Door {
+public:
+	Window window;
+	void open() const {}
+	void close() const {}
+};
+class Car {
+public:
+	Engine engine;
+	Wheel wheel[4];
+	Door left, right; 
+};
+
+#endif
+// composition operator=
+#if 0
+class Cargo {
+public:
+  Cargo& operator=(const Cargo&) {
+		;     
+    return *this;
+  }
+};
+
+class Truck {
+  Cargo b;
+public:
+  Truck const & operator= ( Truck const & r){
+    b = r.b; // b.operator=(r.b); // b.Cargo::operator=(r.b);
+    return *this;
+  }
+};
+
+int main() {
+  Truck a, b;
+  a = b; // Prints: "inside Cargo::operator=()"
 }
 #endif
-// перегрузка операторов ++
+
+// useless inheritance
 #if 0
+// the is-a relationship here is broken
+// using inheritance primarily to reuse code, and not to maintain the common interface of the base class (which is an essential aspect of polymorphism)
+// C14:InheritStack.cpp
 #include <iostream>
+#include <string>
+
 using namespace std;
 
-class Point {
-private:
-	int x;
-	int y;
-
+class Stack {
+  struct Link {
+    void* data;
+    Link* next;
+    Link(void* dat, Link* nxt): 
+      data(dat), next(nxt) {}
+  }* head;
 public:
-	Point(void) {
-		cout << this << " cons void" << endl;
-		x = 0;
-		y = 0;
-	}
-	Point(int x, int y) {
-		cout << this << " cons int int" << endl;
-		this->x = x;
-		this->y = y;
-	}
-	Point(Point const& other) {
-		cout << this << " cons class&" << endl;
-		this->x = other.x;
-		this->y = other.y;
-	}
-	bool operator==(Point const& other) {
-		return bool(this->x == other.x && this->y == other.y);
-	}
-	bool operator!=(Point const& other) {
-		return bool(this->x != other.x && this->y != other.y);
-	}
-	Point operator+(Point const& other) {
-		cout << this << " class operator+ (class&)" << endl;
-		Point sum(this->x + other.x, this->y + other.y);
-		return sum;
-	}
-	Point& operator=(Point const& other) {
-		cout << this << " class& operator= (class&)" << endl;
-		this->x = other.x;
-		this->y = other.y;
-		return *this;
-	}
-	Point& operator++(void) {
-		++this->x;
-		++this->y;
-		return *this;
-	}
-	Point operator++(int value) {
-		Point temp(*this);
-		++this->x;
-		// this->x++;
-		++this->y;
-		// this->y++;
-		return temp;
-	}
-	void print(void) { cout << this->x << ' ' << this->y << endl; }
-	~Point(void) { cout << this << " des" << endl; }
+  Stack() : head(0) {	; }
+  ~Stack() { ; }
+  void push(void* dat) {
+    head = new Link(dat, head);
+  }
+  void* pop() {
+    if(head == 0) return 0;
+    void* result = head->data;
+    Link* oldHead = head;
+    head = head->next;
+    delete oldHead;
+    return result;
+  }
+  void* peek() const { 
+    return head ? head->data : 0;
+  }
 };
-int main(void) {
-	Point a(1, 2);
-	Point b(3, 4);
-	bool result = (a == b);
-	++a;
-	a++;
 
-	return 0;
+class StringStack : private Stack  {
+ public:
+  void push(string* str) { Stack::push(str); }
+  string* peek() const { return (string*)Stack::peek(); }
+  string* pop() { return (string*)Stack::pop(); }
+  ~StringStack() {
+    string* top = pop();
+    while (top) {
+      delete top;
+      top = pop();
+    }
+  }
+};
+
+int main(void){
+  string line1("Hello!");
+  string line2("I'm string!");
+  
+  StringStack  textlines;
+  textlines.push(new string(line1));
+  textlines.push(new string(line2));
+  
+  string* s;
+  while((s = textlines.pop()) != 0) {
+    cout << *s << endl;
+    delete s; 
+  }
+
+  return 0;
 }
+
 #endif
-// ->
+// true inheritance 
 #if 0
+//: C14:FName2.cpp
+// new type has exactly the same interface as the existing type (plus any other member functions you want to add)
+#include <fstream>
 #include <iostream>
+#include <string>
 
-class Some {
-public:
-	int a;
-	Some* operator -> (void) {
-		return this;
-	}
+using namespace std;
+
+// class FName1 {
+//   ifstream file; // a composition doesn't allow to call ifstream::close() of private object outside the class itself
+// public:
+//   operator ifstream&() { return file; } //  automatic type conversion happens only in function calls, not during member selection. So this approach won’t work.
+//   void close (void){ file.close(); } // This will work if there are only a few functions you want to bring through from the ifstream class.
+// Subtyping solves the problem
+
+class FName2 : public ifstream {
+  string fileName;
+  bool named;
+
+ public:
+  FName2() : named(false) {}
+  FName2(const string& fname) : ifstream(fname.c_str()), fileName(fname) {
+    named = true;
+  }
+  string name() const { return fileName; }
+  void name(const string& newName) {
+    if (named) return;  // Don't overwrite
+    fileName = newName;
+    named = true;
+  }
 };
 
-int main(void) {
-	Some s;
-	s.a = 1;
-	std::cout << s.a << std::endl;
+void function ( ifstream & r){
+	;
+}
 
-	Some* ptr;
-	ptr = &s;     //  Some * ptr (&s);
-	ptr->a = 2;   //  (*ptr).a = 2;
-	std::cout << s.a << std::endl;
+int main() {
+  FName2 file("FName2.cpp");
+  cout << "name: " << file.name() << endl;
+  
+	string s;
+  getline(file, s);  // These work too!
+	function (file);
 
-	   s.operator->();
-	(*(s.operator->() )).a = 3;
-	(* s.operator->() ) .a = 3;
-	(  s.operator->() )->a = 4;
-	std::cout << s.a << std::endl;
+  file.seekg(-200, ios::end);
+  file.close();
 
-	   s->a                = 4;//! (*s).a = 4;
-	std::cout << s.a << std::endl;
+}
+#endif
+// inheritance and operator= 1
+#if 0
 
-	// .member или ->member  
-	// нельзя (или очень затруднительно по смыслу) представить как sometype function (sometype member) { }
-	// потому что подсчётом оффсета в стеке и арифметикой указателей занимается сам компилятор
-	// а здесь объединяется два оператора -> в одном
+class Byte { 
+  unsigned char b;
+public:
+  Byte(unsigned char bb = 0) : b(bb) {}
+  Byte& operator=(Byte const & right) {
+    if(this == &right) return *this;
+    b = right.b;
+    return *this;
+  }
+}; 
+
+class Byte2 : public Byte {
+public:
+  // Constructors don't inherit:
+  Byte2(unsigned char bb = 0) : Byte(bb) {}  
+  // operator= does not inherit
+  // Only the SameType = SameType operator= is synthesized
+  Byte2& operator=(Byte const & right) {
+    Byte::operator=(right);
+    return *this;
+  }
+  Byte2& operator=(int i) { 
+    Byte::operator=(i);// will work due to non-explicit call to Byte::Byte (unsigned char)
+    return *this;
+  }
+};
+
+int main() {
+	Byte b(1);
+	Byte2 b2(2), b3(3);
+  b2 = b3;// is synthesized
+	b2 = b;
+	b2 = 47;
 
 	return 0;
 }
-#endif
 
+#endif
+// inheritance and operator= 2
+#if 0
+
+class Base {
+  int data;
+public:
+  // Base & operator= (Base const & r) {// can be synthesized automatically
+  //   data = r.data;  
+  //   return *this;
+  // }
+};
+
+class Derived : public Base {
+  int data;
+public:
+  // Derived & operator= (Derived const & r){ // can be synthesized automatically
+  //   Base::operator=(r);
+  //   data = r.data;
+  //   return *this;
+  // }
+	Derived const & operator= (Base const & r){//will not be synthesized automatically
+    Base::operator=(r);
+    return *this;
+  }
+};
+
+int main() {
+  Base b;
+  Derived d1;
+  
+  Base & r = d1;
+  //! Derived & d = b;
+	
+  b = d1;
+	d1 = b;
+
+	return 0;
+}
+
+#endif
 
 // inner class
 #if 0
@@ -1754,7 +2517,7 @@ int main(void) {
 	return 0;
 }
 #endif
-// public, private, protected inheritance данные 
+// public, private, protected inheritance данные
 #if 0
 #include <iostream>
 #include <string>
@@ -2078,7 +2841,7 @@ int main(void) {
 	return 0;
 }
 #endif
-// чисто виртуальный метод, абстрактный класс 
+// чисто виртуальный метод, абстрактный класс
 #if 0
 #include <iostream>
 
@@ -2134,7 +2897,7 @@ int main(void) {
 	return 0;
 }
 #endif
-// интерфейсы 
+// интерфейсы
 #if 0
 #include <iostream>
 #include <string>
@@ -2473,7 +3236,7 @@ int main() {
 	return 0;
 }
 #endif
-// ромбовидное наследование и виртуальное наследование   
+// ромбовидное наследование и виртуальное наследование
 #if 0
 //ромбовидное наследование
 #if 0
@@ -2589,11 +3352,12 @@ int main() {
 #endif
 
 #endif
+
 // Построчное копирование файлов Эккель
 #if 0
-#include <string>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
 
 using namespace std;
@@ -2626,9 +3390,8 @@ int main(void) {
 // работа с файлами
 #if 0
 
-#include <string>
-
 #include <iostream>
+#include <string>
 	// cin, cout, cerr, clog
 #include <fstream>
 	// ifstream - чтение
@@ -2699,8 +3462,8 @@ int main() {
 #endif
 // запись объекта в файл
 #if 0
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 class Point {
 public:
@@ -2752,10 +3515,10 @@ int main() {
 	return 0;
 }
 #endif
-// чтение и запись в файл c помощью fstream  
+// чтение и запись в файл c помощью fstream
 #if 0
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 int main() {
 	std::string path = "fstream.txt";
@@ -2788,14 +3551,13 @@ int main() {
 }
 #endif
 
-
-// перегрузка >> << 
+// перегрузка >> <<
 #if 0
 // public переменные
 #if 0
+#include <fstream>
 #include <iostream>
 #include <string>
-#include <fstream>
 class Point {
 public:
 	Point(void) {
@@ -2871,9 +3633,9 @@ int main() {
 #endif
 // private переменные
 #if 1
+#include <fstream>
 #include <iostream>
 #include <string>
-#include <fstream>
 class Point {
 public:
 	Point(void) {
@@ -2940,9 +3702,9 @@ int main() {
 #endif
 //  try catch обработка исключений
 #if 0
+#include <fstream>
 #include <iostream>
 #include <string>
-#include <fstream>
 
 int main(void) {
 	std::string path = "nocreated";
@@ -3054,7 +3816,7 @@ int main(void) {
 }
 #endif
 #endif
-// собственный exception 122 заебало 
+// собственный exception 122 заебало
 #if 0
 #include <iostream>
 
@@ -3100,7 +3862,7 @@ int main(void) {
 	return 0;
 }
 #endif
-// шаблоны классов (обобщенные классы) 
+// шаблоны классов (обобщенные классы)
 #if 0
 #include <iostream>
 
@@ -3313,14 +4075,14 @@ int main() {
 	return 0;
 }
 #endif
-// string vector array 
+// string vector array
 #if 0
 
 // string
 #if 0
+#include <algorithm>
 #include <iostream>
 #include <string>
-#include <algorithm>
 using namespace std;
 
 bool isAnagram(std::string str1, std::string str2) {
@@ -3351,10 +4113,10 @@ int main(void)
 #if 1
 #include <algorithm>
 #include <cstdlib>
+#include <iomanip>
 #include <iostream>
 #include <iterator>  // For std::begin and std::end
 #include <vector>
-#include <iomanip>
 
 using std::cout;
 using std::endl;
@@ -3451,8 +4213,8 @@ int main() {
 
 // array
 #if 0
-#include <iostream>
 #include <array>
+#include <iostream>
 
 int main() {
 	std::array<int, 5> Arr{ 1, 2, 3 };
