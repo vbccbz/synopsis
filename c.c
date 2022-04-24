@@ -1081,65 +1081,104 @@ Pointers.
 		int *ptr = array; // create pointer to array
 	Это неправильно. Wayne Throop has put it, it`s "pointer arithmetic and array indexing [that] are equivalent in C, pointers and arrays are different."
 
-	Using subscripting and pointer notations with arrays. Pointer to int and pointer to array.
-		#include <stdio.h>
-		int main ( void )   
-		{
-			int * Ptr1, * Ptr2;
-			int MAS [] = { 10, 20, 30, 40 };// An array name can be thought of as a constant pointer. Которого не существует. Причем важно понимать, что при этом нет ячейки с адресом массива. Имя массива является указателем как бы для компилятора. Называть указателем то, что им не является? А он и не называл, он сказал "можно рассматривать"... Вообще, arrays are not pointers. That's just a behavior of array types and is not meant to imply that they are same thing.
+Assember
 
-			// ER  int * MAS = { 10, 20, 30, 40 };
-			Ptr1 = MAS;// Because the array name (without a subscript) is a pointer to the first element of the array, we can set Ptr1 equal (равным) to the address of the first element in array MAS with the statement; 
-			// Но это не значит, что можно легко говорить "указатель на массив". См. Spiral Rule для доказательства. В книгах пишут "int *ptr = array; // create pointer to array". Но int *ptr - это только указатель на int. int (*ptr)[] - это указатель на массив int (причем, конкретно этот имеет неопределенные границы, что будет приводить к ошибкам в некоторых ситуациях).
-			Ptr1 = &MAS[0];// Равносильно предыдущему, но нагляднее.
+struct Astra{
+		int a;
+		int b;
+};
+
+
+int main(void){
+	//main:
+	// push rbp
+	// mov rbp, rsp
+
+	struct Astra data;
+	// gcc -m64 doesn't deduct from stack pointer.
+
+	data.a = 1;
+  //mov DWORD PTR [rbp-16], 1
+	data.b = 2;
+  //mov DWORD PTR [rbp-12], 2
+
+	struct Astra *ptr;
+	ptr = &data;
+  //lea rax, [rbp-16]
+  //mov QWORD PTR [rbp-8], rax
+	
+	(*ptr).a = 3;
+  //mov rax, QWORD PTR [rbp-8]
+  //mov DWORD PTR [rax], 3
+  (*ptr).b = 4;
+	//mov rax, QWORD PTR [rbp-8]
+ // mov DWORD PTR [rax+4], 4
+
+	return 0;
+	mov eax, 0
+  pop rbp
+  ret
+}
+
+Using subscripting and pointer notations with arrays. Pointer to int and pointer to array.
+	#include <stdio.h>
+	int main ( void )   
+	{
+		int * Ptr1, * Ptr2;
+		int MAS [] = { 10, 20, 30, 40 };// An array name can be thought of as a constant pointer. Которого не существует. Причем важно понимать, что при этом нет ячейки с адресом массива. Имя массива является указателем как бы для компилятора. Называть указателем то, что им не является? А он и не называл, он сказал "можно рассматривать"... Вообще, arrays are not pointers. That's just a behavior of array types and is not meant to imply that they are same thing.
+
+		// ER  int * MAS = { 10, 20, 30, 40 };
+		Ptr1 = MAS;// Because the array name (without a subscript) is a pointer to the first element of the array, we can set Ptr1 equal (равным) to the address of the first element in array MAS with the statement; 
+		// Но это не значит, что можно легко говорить "указатель на массив". См. Spiral Rule для доказательства. В книгах пишут "int *ptr = array; // create pointer to array". Но int *ptr - это только указатель на int. int (*ptr)[] - это указатель на массив int (причем, конкретно этот имеет неопределенные границы, что будет приводить к ошибкам в некоторых ситуациях).
+		Ptr1 = &MAS[0];// Равносильно предыдущему, но нагляднее.
 		
-			char Array[5] ; 
-			char * a = Array ; // Array is pointer to char (or to the first element of Array). The base type of a is char.
-			char (*b) [] =  &Array ; // &Array is pointer to whole array of 5 chars. The base type of b is an array of few chars.
-			//ER char (*b) [3] = &Array ;//assignment from incompatible pointer type. The base type of b is an array of 3 chars.
-			// Array and &Array give same address, but they have different types of addresses. 
-			printf("%p %p\n", Array  , &Array   ) ;// 0028ff33 0028ff33
-			printf("%p %p\n", Array+1, &Array+1 ) ;// 0028ff34 0028ff38
+		char Array[5] ; 
+		char * a = Array ; // Array is pointer to char (or to the first element of Array). The base type of a is char.
+		char (*b) [] =  &Array ; // &Array is pointer to whole array of 5 chars. The base type of b is an array of few chars.
+		//ER char (*b) [3] = &Array ;//assignment from incompatible pointer type. The base type of b is an array of 3 chars.
+		// Array and &Array give same address, but they have different types of addresses. 
+		printf("%p %p\n", Array  , &Array   ) ;// 0028ff33 0028ff33
+		printf("%p %p\n", Array+1, &Array+1 ) ;// 0028ff34 0028ff38
 			
-			char (*b2) [5] =  &Array ;//otherwise will invalid use of array with unspecified bounds.
-			printf("   %p\n",          b2   ) ;// 0028ff33
-			printf("   %p\n",          b2+1 ) ;// 0028ff38
+		char (*b2) [5] =  &Array ;//otherwise will invalid use of array with unspecified bounds.
+		printf("   %p\n",          b2   ) ;// 0028ff33
+		printf("   %p\n",          b2+1 ) ;// 0028ff38
 
-			//Pointers can be compared using equality and relational operators, but such comparisons are meaningless unless the pointers point to elements of the same array. Pointer comparisons compare the addresses stored in the pointers. A comparison of two pointers pointing to elements in the same array could show, for example, that one pointer points to a higher-numbered element of the array than the other pointer does. A common use of pointer comparison is determining whether a pointer is NULL.
+		//Pointers can be compared using equality and relational operators, but such comparisons are meaningless unless the pointers point to elements of the same array. Pointer comparisons compare the addresses stored in the pointers. A comparison of two pointers pointing to elements in the same array could show, for example, that one pointer points to a higher-numbered element of the array than the other pointer does. A common use of pointer comparison is determining whether a pointer is NULL.
 
-			puts ("int MAS[] = { 10, 20, 30, 40 };" );
-			puts ("int * Ptr1 = MAS;" );
-			puts ("i  Ptr1+i     &MAS[i]   *(Ptr1+i)  Ptr1[i]  MAS[i]  *(MAS+i)  *(&MAS[0]+i)");
-			for (int i = 0; i != 4; ++i)
-			{
-				printf("%d %p %p  %d        %d      %d      %d        %d\n", 
-					i, Ptr1+i, &MAS[i], *(Ptr1+i), Ptr1[i], MAS[i], *(MAS+i), *(&MAS[0]+i) );   
-			}
-			//ER  printf ("%d\n", *Ptr1[2] );// Ptr1[2] это фича, элемент массива, а не указатель, который можно разыменовать; is not a pointer and should not be dereferenced.
-		}
-
-		int MAS[] = { 10, 20, 30, 40 };
-		int * Ptr1 = MAS;
-		i Ptr1+i    &MAS[i]     *(Ptr1+i) Ptr1[i] MAS[i]  *(MAS+i)    *(&MAS[0]+i)
-		0 0028FF18  0028FF18    10        10      10      10          10
-		1 0028FF1C  0028FF1C    20        20      20      20          20
-		2 0028FF20  0028FF20    30        30      30      30          30
-		3 0028FF24  0028FF24    40        40      40      40          40
-		// Pointer/offset notation *(Ptr1+offset) where the pointer is the array name. The parentheses are necessary because the precedence of * is higher than the precedence of +. 
-		// Pointer subscript notation Ptr1[i]. Pointers can be subscripted like arrays. If Ptr1 has the value MAS, the expression refers to the array element MAS[1]. &Ptr1[i] равен &MAS[i].
-		// Array subscript notation MAS[i]. An array name can be thought of as a constant pointer. 
-		// Pointer/offset notation *(MAS+offset). The array itself can be treated as a pointer and used in pointer arithmetic.
-
-		#include <stdio.h>
-		int main(void)
+		puts ("int MAS[] = { 10, 20, 30, 40 };" );
+		puts ("int * Ptr1 = MAS;" );
+		puts ("i  Ptr1+i     &MAS[i]   *(Ptr1+i)  Ptr1[i]  MAS[i]  *(MAS+i)  *(&MAS[0]+i)");
+		for (int i = 0; i != 4; ++i)
 		{
-			int M[5] = { 2 };
-			int(*ptr)[5] = M;
-			printf("%d\n", (*ptr)[0]);
-			int* arr = *ptr;
-			printf("%d\n", arr[0]);
-			return 0;
+			printf("%d %p %p  %d        %d      %d      %d        %d\n", 
+				i, Ptr1+i, &MAS[i], *(Ptr1+i), Ptr1[i], MAS[i], *(MAS+i), *(&MAS[0]+i) );   
 		}
+		//ER  printf ("%d\n", *Ptr1[2] );// Ptr1[2] это фича, элемент массива, а не указатель, который можно разыменовать; is not a pointer and should not be dereferenced.
+	}
+
+	int MAS[] = { 10, 20, 30, 40 };
+	int * Ptr1 = MAS;
+	i Ptr1+i    &MAS[i]     *(Ptr1+i) Ptr1[i] MAS[i]  *(MAS+i)    *(&MAS[0]+i)
+	0 0028FF18  0028FF18    10        10      10      10          10
+	1 0028FF1C  0028FF1C    20        20      20      20          20
+	2 0028FF20  0028FF20    30        30      30      30          30
+	3 0028FF24  0028FF24    40        40      40      40          40
+	// Pointer/offset notation *(Ptr1+offset) where the pointer is the array name. The parentheses are necessary because the precedence of * is higher than the precedence of +. 
+	// Pointer subscript notation Ptr1[i]. Pointers can be subscripted like arrays. If Ptr1 has the value MAS, the expression refers to the array element MAS[1]. &Ptr1[i] равен &MAS[i].
+	// Array subscript notation MAS[i]. An array name can be thought of as a constant pointer. 
+	// Pointer/offset notation *(MAS+offset). The array itself can be treated as a pointer and used in pointer arithmetic.
+
+	#include <stdio.h>
+	int main(void)
+	{
+		int M[5] = { 2 };
+		int(*ptr)[5] = M;
+		printf("%d\n", (*ptr)[0]);
+		int* arr = *ptr;
+		printf("%d\n", arr[0]);
+		return 0;
+	}
 
 Pointers and multidimensional arrays.
 	int A [10][10];
