@@ -1863,6 +1863,21 @@ int main() {
 	p.print("value of p");
 	q.print("value of q");
 }
+
+// mere convenience 
+#if 0
+class Tree {
+	int height;
+public:
+	Tree(int treeHeight) : height(treeHeight) {}
+	~Tree() { std::cout << "*"; }
+	friend std::ostream& operator<<(std::ostream& os, const Tree* t) {
+	// Note, however, that even though the function is declared as a friend, it is defined as an inline! This is a mere convenience – defining a friend function as an inline to a class doesn’t change the friend status or the fact that it’s a global function and not a class member function. Also notice that the return value is the result of the entire output expression, which is an ostream& (which it must be, to satisfy the return value type of the function).
+		return os << "Tree height is: " << t->height << std::endl;
+	}
+};
+#endif
+
 #endif
 // static in class (non-const, const)
 #if 0
@@ -1885,47 +1900,27 @@ public:
 	double get_sdc(void);
 	static int Count;
 };
+
 //MyClass.cpp
 #include "MyClass.h"
 
 MyClass::MyClass(int var) : data(var), c(var) {
 	// data(var) можно заменить на data = var; или this->data = var;
 	// c(var) иначе никак
-
 }
-
-int MyClass::get_data(void) {
-	return data;
-}
-
-int MyClass::get_c(void) {
-	return c;
-}
-
-int MyClass::s = 123;//Эти определения обладают внутренним связыванием, поэтому могут размещаться в заголовочных файлах.
+int          MyClass::get_data(void) { return data; }
+int          MyClass::get_c   (void) { return c; }
+int          MyClass::s = 123;//Эти определения обладают внутренним связыванием, поэтому могут размещаться в заголовочных файлах.
 // непонятно как это, выдает ошибку already defined in main.obj
-
-int MyClass::get_s(void) {
-	return s;
-}
-
-int MyClass::get_sic(void) {
-	return sic;
-}
-
+int          MyClass::get_s   (void) { return s; }
+int          MyClass::get_sic (void) { return sic; }
 double const MyClass::sdc = 3.14;
-
-double MyClass::get_sdc(void) {
-	return sdc;
-}
-
-int  MyClass::ai[5];
-
-int MyClass::Count = 0;
+double       MyClass::get_sdc (void) { return sdc; }
+int          MyClass::ai[5];
+int          MyClass::Count = 0;
 
 //main.c
 #include <iostream>
-
 #include "MyClass.h"
 
 int main(void) {
@@ -2107,30 +2102,25 @@ class Stack {
   struct Link {
     void* data;
     Link* next;
-    Link(void* dat, Link* nxt): 
-      data(dat), next(nxt) {}
-  }* head;
+    Link(void* dat, Link* nxt): data(dat), next(nxt) {}
+  } * head;
 public:
-  Stack() : head(0) {
-
-  }
-  ~Stack() { 
-
-  }
+  Stack() : head(0) { }
+  ~Stack() { }
   void push(void* dat) {
     head = new Link(dat, head);
   }
   void* pop() {
     if(head == 0) return 0;
     void* result = head->data;
-    Link* oldHead = head;
+    
+		Link* oldHead = head;
     head = head->next;
     delete oldHead;
-    return result;
+    
+		return result;
   }
-  void* peek() const { 
-    return head ? head->data : 0;
-  }
+  void* peek() const { return head ? head->data : 0; }
 };
 
 class StringStack  {
@@ -2142,7 +2132,7 @@ class StringStack  {
   ~StringStack() {
     string* top = pop();
     while (top) {
-      delete top;
+      delete top;// This StringStack must work only with heap.
       top = pop();
     }
   }
@@ -2222,7 +2212,7 @@ int main() {
 }
 #endif
 
-// useless inheritance
+// useless inheritance and hidden
 #if 0
 // the is-a relationship here is broken
 // using inheritance primarily to reuse code, and not to maintain the common interface of the base class (which is an essential aspect of polymorphism)
@@ -2260,7 +2250,10 @@ public:
 
 class StringStack : private Stack  {
  public:
-  void push(string* str) { Stack::push(str); }
+  void push(string* str) { Stack::push(str); } 
+	//name hiding
+	//This is called redefining for ordinary member functions and overriding when the base class member function is a virtual function.
+	//early binding (binding is performed before the program is run (by the compiler and linker)
   string* peek() const { return (string*)Stack::peek(); }
   string* pop() { return (string*)Stack::pop(); }
   ~StringStack() {
@@ -2333,7 +2326,7 @@ int main() {
   cout << "name: " << file.name() << endl;
   
 	string s;
-  getline(file, s);  // These work too!
+  getline(file, s);  // These work too! Upcasting!
 	function (file);
 
   file.seekg(-200, ios::end);
@@ -2341,86 +2334,213 @@ int main() {
 
 }
 #endif
-// inheritance and operator= 1
+// inheritance and operator= and upcasting
 #if 0
 
-class Byte { 
+class Base { 
   unsigned char b;
 public:
-  Byte(unsigned char bb = 0) : b(bb) {}
-  Byte& operator=(Byte const & right) {
-    if(this == &right) return *this;
-    b = right.b;
-    return *this;
-  }
-}; 
-
-class Byte2 : public Byte {
-public:
-  // Constructors don't inherit:
-  Byte2(unsigned char bb = 0) : Byte(bb) {}  
-  // operator= does not inherit
-  // Only the SameType = SameType operator= is synthesized
-  Byte2& operator=(Byte const & right) {
-    Byte::operator=(right);
-    return *this;
-  }
-  Byte2& operator=(int i) { 
-    Byte::operator=(i);// will work due to non-explicit call to Byte::Byte (unsigned char)
-    return *this;
-  }
-};
-
-int main() {
-	Byte b(1);
-	Byte2 b2(2), b3(3);
-  b2 = b3;// is synthesized
-	b2 = b;
-	b2 = 47;
-
-	return 0;
-}
-
-#endif
-// inheritance and operator= 2
-#if 0
-
-class Base {
-  int data;
-public:
-  // Base & operator= (Base const & r) {// can be synthesized automatically
-  //   data = r.data;  
+  Base(unsigned char bb = 0) : b(bb) {}
+  // Base& operator=(Base const & right) {// can be synthesized
+  //   if(this == &right) return *this;
+  //   b = right.b;
   //   return *this;
   // }
-};
+}; 
 
 class Derived : public Base {
   int data;
 public:
-  // Derived & operator= (Derived const & r){ // can be synthesized automatically
-  //   Base::operator=(r);
-  //   data = r.data;
+  Derived(unsigned char bb = 0) : Base(bb) {
+  // Constructors don't inherit
+  }
+  // Derived const & operator= (Derived const & right) { 
+  // operator= does not inherit
+  // Only the SameType = SameType operator= is synthesized
+  //   Base::operator=(right); // upcasting
+  //   data = right.data;
   //   return *this;
   // }
-	Derived const & operator= (Base const & r){//will not be synthesized automatically
-    Base::operator=(r);
+  Derived const & operator=(Base const & right) { 
+  // will no be synthesized
+    Base::operator=(right);
+    return *this;
+  }
+  Derived const & operator=(int i) { 
+    Base::operator=(i);// non-explicit call to Base constructor
     return *this;
   }
 };
 
 int main() {
-  Base b;
-  Derived d1;
-  
-  Base & r = d1;
-  //! Derived & d = b;
-	
-  b = d1;
-	d1 = b;
+	Base b(1);
+	Derived d(2);
+
+  Base & refb = d; // upcasting
+  //! Derived & refd = b; 
+
+  b = d;
+	d = b;
+	d = 47;
 
 	return 0;
+
+	// base & ref = derived obj
+	// ref.method will call base::methond instead derived::method 
+	//This is a significant problem; it is solved in Chapter 15 by introducing the third cornerstone of object-oriented programming: polymorphism (implemented in C++ with virtual functions).
 }
 
+#endif
+// inheritance and ctor
+#if 0
+#include <iostream>
+using namespace std;
+
+class Parent {
+  int i;
+public:
+  Parent() : i(0) { }
+  Parent(int ii) : i(ii) { }
+  Parent(const Parent& b) : i(b.i) { }
+  friend ostream & operator<< (ostream& os, const Parent& b) {
+    return os << "Parent: " << b.i << endl;
+  }
+};
+
+class Member {
+  int i;
+public:
+  Member(int ii) : i(ii) { }
+  Member(const Member& m) : i(m.i) { }
+  friend ostream & operator<< (ostream& os, const Member& m) {
+    return os << "Member: " << m.i << endl;
+  }
+};
+
+class Child : public Parent {
+  int i;
+  Member m;
+public:
+  Child(int ii) : Parent(ii), i(ii), m(ii) { }
+	// Child(Child const & r) : Parent(r), i(r.i), m(r.m) { }
+  friend ostream & operator<< (ostream& os, const Child& c){
+    return os << (Parent &) c << c.m << "Child: " << c.i << endl;// (Parent &) protects from recursion
+  }
+};
+// Интересно получатеся, что здесь operator<< не являются мемберами. Это просто глобальные функции. Здесь наследуется признак дружественности этих функций. 
+// Probably because of that, compiler doesn't gives error about hidden names due to redefining.
+int main() {
+  Child c(2);
+  Child c2 = c; // Calls copy-constructor
+  cout << c2;
+} ///:~
+
+#endif
+
+// Polymorphism 
+#if 0
+//A.cpp ---> A.o
+
+class A{ 
+	/* vptr */
+  char d;
+public:
+	// A(void);
+  virtual void function1 (void);
+  virtual void function2 (void);
+};
+
+//void A::A (void) { 
+	/* 
+	vptr = vtableA; 
+	*/ 
+//}
+
+void A::function1 (void) { }
+void A::function2 (void) { }
+
+/*
+vtableA:
+	.quad 0
+	.quad typeinfo for A
+	.quad A::function1(void)
+	.quad A::function2(void)
+typeinfo for A:
+	...
+*/
+
+//f.cpp ---> f.o
+// #include "A.h"
+void f ( A & ra ) { 
+	ra.function1 (); // call ra.vptr
+	ra.function2 (); // call ra.vptr + 8 (x64)
+}
+
+//B.cpp ---> B.o
+//#include "A.h"
+class B : public A { 
+	/* vptr */
+public:
+	// B (void);
+  void function1 (void);
+  /* void function2 (void); */ //is not overridden, the "closest" definition in the inheritance hierarchy is automatically used
+};
+
+//void B::B (void) { 
+	/* 
+	vptr = vtableB; 
+	A::A( this );
+	*/ 
+//}
+
+void B::function1 (void) { }
+
+/* 
+vtableB:
+	.quad 0
+	.quad typeinfo for B
+	.quad B::function1(void)
+	.quad A::function2(void)
+typeinfo for B:
+	...
+*/
+
+//C.cpp
+//#include "B.h"
+class C : public B { 
+	/* vptr */
+public:
+	// C(void);
+	/* void function1 (void); */ //is not overridden 
+	/* void function2 (void); */ //is not overridden 
+};
+
+//void C::C (void) { 
+	/* 
+	vptr = vtableC; 
+	B::B (this);   
+	*/
+//}
+/*
+vtableC:
+	.quad 0
+	.quad typeinfo for C
+	.quad B::function1(void)
+	.quad A::function2(void)
+typeinfo for C:
+	...
+*/
+
+// main.cpp
+// #include "A.h" 
+// #include "f.h" 
+// #include "B.h" 
+// #include "C.h" 
+int main(void){
+  A a; B b; C c;
+  f(a); f(b); f(c);
+
+}
 #endif
 
 // inner class
