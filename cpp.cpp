@@ -21,7 +21,7 @@ public:
 		c = var3;
 	}
 	void Print(void) {
-		std::cout << a << b << c << std::endl;
+		std::cout << a << b << c << std::endl; // an operator (::) called the scope resolution operator (named so because names can now be in different scopes: at global scope or within the scope of a struct)
 	}
 private:
 	int a;
@@ -700,7 +700,9 @@ int main(void) {
 	//!
 	//! 
 
-	// With C++'s non-reseatable references ref1 still points to i and i is assigned the value. With reseatable references ref would point to k after evaluating this code. int k = 3; ref1 = k; // is equivalent to i = k; not to int& ref = k;
+	// With C++'s non-reseatable references ref1 still points to i and i is assigned the value. With reseatable references ref would point to k after evaluating this code. 
+	// int k = 3; ref1 = k; // is equivalent to i = k; not to int& ref = k;
+
 	//const int& refc{ 2 + 3 };//extended initializer lists int const & lv с++=11
 	return 0;
 }
@@ -905,26 +907,22 @@ int main(void) {
 }
 
 #endif
-// ctor essential 3
-#if 0
-
-#endif
-// мусор конструктор перемещения &&
+// ctor essential 3 конструктор перемещения && MyString
 #if 0
 #include <iostream>
 using namespace std;
 
-#include <string>
-struct myString {
+#include <cstring> //#include <string.h> //strlen
+struct MyString {
 	char* str;
 	size_t length;
 
-	myString(void) {
+	MyString(void) {
 		str = nullptr;
 		length = 0;
 	}
 
-	myString(char const* other_str) {
+	MyString(char const* other_str) {
 		length = strlen(other_str);
 		str = new char[1 + this->length];
 		if (str != nullptr) {
@@ -935,8 +933,30 @@ struct myString {
 		}
 	}
 
-	myString operator+(myString const& other) {
-		myString temp;
+	MyString(MyString const& other) {
+		length = other.length;
+
+		str = new char[1 + length];
+		if (str != nullptr) {
+			for (size_t i = 0; i < length; ++i) {
+				str[i] = other.str[i];
+			}
+			str[length] = '\0';
+		}
+	}
+
+	MyString(MyString&& other) { //конструктор перемещения может использоваться вместо конструктора копирования
+		length = other.length;
+
+		str = other.str;
+		other.str = nullptr;//защищает str от деструктора, который будет очищать other.str объекта tmp
+		// удобство кп в том, что он обрабатывает данные локальных объектов, которые будут уничтожены и не применяется к данным локальных объектов, которые не будут уничтожены
+	}
+
+	~MyString(void) { delete[] str; }
+
+	MyString operator+(MyString const& other) {
+		MyString temp;
 		temp.str = new char[1 + length + other.length];//other.length в class работает за счёт дружественности, в struct за счёт public
 		temp.length = 1 + length + other.length;
 
@@ -956,27 +976,7 @@ struct myString {
 		// адрес temp передаётся явно в const & или const &&
 	}
 
-	myString(myString const& other) {
-		length = other.length;
-
-		str = new char[1 + length];
-		if (str != nullptr) {
-			for (size_t i = 0; i < length; ++i) {
-				str[i] = other.str[i];
-			}
-			str[length] = '\0';
-		}
-	}
-
-	myString(myString&& other) { //конструктор перемещения может использоваться вместо конструктора копирования
-		length = other.length;
-
-		str = other.str;
-		other.str = nullptr;//защищает str от деструктора, который будет очищать other.str объекта tmp
-		// удобство кп в том, что он обрабатывает данные локальных объектов, которые будут уничтожены и не применяется к данным локальных объектов, которые не будут уничтожены
-	}
-
-	myString& operator=(myString const& other) {
+	MyString& operator=(MyString const& other) {
 		if (this->str != nullptr) {
 			delete[] this->str;
 		}
@@ -989,17 +989,13 @@ struct myString {
 		return *this;
 	}
 
-	~myString(void) { delete[] str; }
-
-	void Print(void) {
-		cout << this->str << endl;
-	}
+	void Print(void) { cout << this->str << endl;	}
 };
 
 int main(void) {
-	myString string1("Hello");
-	myString string2("LOL");
-	myString result;
+	MyString string1("Hello");
+	MyString string2("LOL");
+	MyString result;
 
 	result = string1 + string2;
 	//result.operator=(string1.operator+(string2));
@@ -1369,9 +1365,6 @@ int main(void) {
 // iptr = vptr;//C
 //! iptr = vptr; // iptr = (int*)vptr; //C++
 
-// A new-expression returns a pointer to an object of the exact type that you
-// asked for.
-
 #include <iostream>
 using namespace std;
 
@@ -1394,11 +1387,16 @@ class MyClass {
 int main(void) {
   int* pa = 0;
   pa = NULL;
-  pa = nullptr;  // for correct overloading (-std=c++11)
+  pa = nullptr;  // nullptr is usefull for correct overloading (-std=c++11)
 
-  pa = new int;
+  pa = new int;// A new-expression returns a pointer to an object of the exact type that you asked for.
   delete pa;
 
+	pa = (int*) operator new (sizeof(int));//You have confused the new operator and the operator new function. No problem, everybody does. 
+	// It doesn't call constructor.
+	operator delete (pa);
+	// It doesn't call destructor.
+	
   int size = 5;
   pa = new int[size];
   delete[] pa;
@@ -1424,7 +1422,7 @@ int main(void) {
   return 0;
 }
 #endif
-// overloading new and delete 1
+// "overloading" new and delete 1
 #if 0
 // Call delete for a void* almost certainly going to be a bug if pointer is
 // reffering to a type with destructor, because compiler will not call
@@ -1460,7 +1458,7 @@ class MyClass {
   void operator delete[](void* m);
 };
 
-MyClass::MyClass(void) { ; }
+MyClass::MyClass(void) { puts("I am automatically called!");; }
 
 MyClass::~MyClass(void) { ; }
 
@@ -1522,19 +1520,60 @@ int main(void) {
   return 0;
 }
 #endif
-// overloading new and delete 2
+// operator new != function new
+#if 0
+#include <cstdlib>
+#include <stdio.h>
+using namespace std;
+
+void* operator new(size_t sz) {
+  puts("new");
+  void* m = malloc(sz);
+  return m;
+}
+
+void operator delete(void* m) {
+  puts("del");
+  free(m);
+}
+
+class S {
+public:
+  char i[16];
+  S() { puts("ctor"); }
+  ~S() { puts("dtor"); }
+};
+
+int main() {
+  int* ip;
+  S* sp;
+  
+	ip = new int;
+  delete ip;
+  sp = new S;
+  delete sp;
+
+  ip = (int*) operator new ( sizeof(int) );
+	operator delete (ip);
+  sp = (S*) operator new ( sizeof(S) );// no ctor!
+	operator delete (sp);// no dtor!
+
+} 
+#endif
+// "overloading" new and delete 2
 #if 0
 #include <new>  // Size_t definition
+#include <stdio.h>  // 
 using namespace std;
 class Widget {
   enum { sz = 10 };
   int i[sz];
 
  public:
-  Widget() { ; }
-  ~Widget() { ; }
+  Widget() { puts("ctor"); }
+  ~Widget() { puts("dtor"); }
   void* operator new(size_t sz) {
-    return ::new char[sz]; // return ::operator new (sz);
+    return ::new char[sz]; 
   }
   void* operator new[](size_t sz) {
     return ::new char[sz];
@@ -1660,68 +1699,56 @@ class Widget {
 
  public:
   Widget() { ; }
-  Widget(int var) { data = var; }
+  Widget(int var) { data = var; }// 4 bytes
   ~Widget() { ; }
-  void* operator new(size_t sz, void * p) {
+  void* operator new (size_t sz, void * p) {// can it stay only inside of class? or it'll be redefinition?
     return p;
   }
+	// :D
+	//void operator delete (void * p) { // can fix stderr: free(): invalid pointer
+	//	( (Widget*)p )-> Widget::~Widget();
+	//}
 };
 
 int main() {
-  char arr [10];
-  for (int i = 0; i<10; ++i) { 
-    std::cout << (int) arr [i] << ' ';
-  }
-  std::cout << std::endl;
+	// 13/ex14.cpp 
+	//    MyClass* a = new(__FILE__) MyClass; ???????????????????????????????????
 
-  Widget* w = new (arr) Widget(0x20202020);
-  for (int i = 0; i<10; ++i) { 
-    std::cout << (int)arr [i] << ' ';
-  }
+  char someArray [10];
+  for (int i=0; i<10; ++i) { someArray [i] = 0; }
+  for (int i=0; i<10; ++i) {std::cout << (int)someArray [i] << ' ';}
   std::cout << std::endl;
+	// 0 0 0 0 0 0 0 0 0 0 
+	//              void *p    size_t sz   constructor
+
+  Widget* w = new  (someArray)     Widget      (0xFCFDFEFF);// or Widget, or Widget() 
+  
+  for (int i=0; i<10; ++i) {std::cout << (int)someArray [i] << ' ';}
+  std::cout << std::endl;
+	//-1 -2 -3 -4 0 0 0 0 0 0 
 
   w->~Widget();// w->Widget::~Widget(); // Explicit destructor call // ONLY use with placement!
-	// delete w; // warning 'void operator delete(void*)' called on unallocated object 'arr' or stderr: free(): invalid pointer
+	// delete someArray; // warning 'void operator delete(void*)' called on unallocated object 'arr'
+	// delete w; // stderr: free(): invalid pointer
 }
 #endif
-// :D
-#if 0
-#include <iostream> 
-#include <new>       // Size_t definition
+// ??? wtf string
+#if 0 
+#include <new>  // Size_t definition
+#include <iostream>  // Size_t definition
+#include <string>
+
 using namespace std;
-class Widget {
-  int data;
 
- public:
-  Widget() { ; }
-  Widget(int var) { data = var; }
-  ~Widget() { cout << "des" << endl; }
-  // void* operator new(size_t sz, void * p) {
-  //   return p;
-  // }
-  void operator delete(void * p) {
-     ( (Widget*)p )-> Widget::~Widget();
-  }
-};
-
-int main() {
-  char arr [10];
-  for (int i = 0; i<10; ++i) { 
-    std::cout << (int) arr [i] << ' ';
-  }
-  std::cout << std::endl;
-
-  Widget* w = new (arr) Widget(0x20202020);
-  for (int i = 0; i<10; ++i) { 
-    std::cout << (int)arr [i] << ' ';
-  }
-  std::cout << std::endl;
-
-  delete w; // :D
-
+int main(void) {
+  string str1("lol");      
+  //! string (str1);
+   string (str2);
+  //! string str3 ( string (str1) );
   return 0;
 }
-#endif
+#endif 
+
 
 // the constructor initializer list 1
 #if 0
@@ -1876,6 +1903,23 @@ public:
 		return os << "Tree height is: " << t->height << std::endl;
 	}
 };
+
+class A {
+public:
+  friend void lol (A &){ }
+  friend void lol (void){ }
+  friend void lol (int){ }
+  friend void lol (int, A &){ }
+};
+
+int main() {
+  A a;
+  lol(a);
+  // lol();
+  // lol(1);
+  lol(1, a);
+	return 0;
+}
 #endif
 
 #endif
@@ -2018,16 +2062,15 @@ int A::data = 123;
 void A::set(int var) {
 	data = var;
 	//! i = 555;  // a nonstatic member reference must be relative (to a specific object)
-	//! this->i = 555;  //'this' may only be used inside a nonstatic member function weight = 555;
+	//! this->i = 555;  //'this' may only be used inside a nonstatic member function 
 }
 
 int A::get(void) {
 	return A::data;
-}//трында невнимательная int get(void) { return data; }
+}
 
 int main() {
-	A::set(456);//что ты делаш в выводе std::cout << A::set(456) << std::endl;
-	//! std::cout << A::data << std::endl; // из-за private
+	A::set(456);
 	std::cout << A::get() << std::endl;
 	A a;
 	std::cout << a.get() << std::endl;
@@ -2155,8 +2198,9 @@ int main(void){
   return 0;
 }
 // template 15 chapter
+
 #endif
-// composition 2
+// composition 2 
 #if 0
 class Engine {
 public:
@@ -2187,6 +2231,7 @@ public:
 };
 
 #endif
+
 // composition operator=
 #if 0
 class Cargo {
@@ -2376,7 +2421,7 @@ int main() {
 	Base b(1);
 	Derived d(2);
 
-  Base & refb = d; // upcasting
+  Base & refb = d; // upcasting, casting up
   //! Derived & refd = b; 
 
   b = d;
@@ -2401,8 +2446,8 @@ class Parent {
 public:
   Parent() : i(0) { }
   Parent(int ii) : i(ii) { }
-  Parent(const Parent& b) : i(b.i) { }
-  friend ostream & operator<< (ostream& os, const Parent& b) {
+  Parent(Parent const & b) : i(b.i) { }
+  friend ostream & operator<< (ostream& os, Parent const & b) {
     return os << "Parent: " << b.i << endl;
   }
 };
@@ -2410,9 +2455,9 @@ public:
 class Member {
   int i;
 public:
-  Member(int ii) : i(ii) { }
-  Member(const Member& m) : i(m.i) { }
-  friend ostream & operator<< (ostream& os, const Member& m) {
+  Member (int ii) : i(ii) { }
+  Member (Member const & m) : i(m.i) { }
+  friend ostream & operator<< (ostream& os, Member const  & m) {
     return os << "Member: " << m.i << endl;
   }
 };
@@ -2422,8 +2467,8 @@ class Child : public Parent {
   Member m;
 public:
   Child(int ii) : Parent(ii), i(ii), m(ii) { }
-	// Child(Child const & r) : Parent(r), i(r.i), m(r.m) { }
-  friend ostream & operator<< (ostream& os, const Child& c){
+	// Child(Child const & r) : Parent(r), i(r.i), m(r.m) { } // upcast just works with ctors
+  friend ostream & operator<< (ostream& os, Child const & c){
     return os << (Parent &) c << c.m << "Child: " << c.i << endl;// (Parent &) protects from recursion
   }
 };
@@ -2437,7 +2482,7 @@ int main() {
 
 #endif
 
-// Polymorphism 
+// Polymorphism 1 essential
 #if 0
 //A.cpp ---> A.o
 
@@ -2452,7 +2497,7 @@ public:
 
 //void A::A (void) { 
 	/* 
-	vptr = vtableA; 
+	vptr = vtableA + offset; 
 	*/ 
 //}
 
@@ -2488,7 +2533,7 @@ public:
 
 //void B::B (void) { 
 	/* 
-	vptr = vtableB; 
+	vptr = vtableB + offset; 
 	A::A( this );
 	*/ 
 //}
@@ -2517,7 +2562,7 @@ public:
 
 //void C::C (void) { 
 	/* 
-	vptr = vtableC; 
+	vptr = vtableC + offset; 
 	B::B (this);   
 	*/
 //}
@@ -2542,6 +2587,634 @@ int main(void){
 
 }
 #endif
+//Polymorphism 2 hidding 
+#if 0
+//: C15:NameHiding2.cpp
+// Virtual functions restrict overloading
+using namespace std;
+class Base {
+ public:
+  virtual int  a (void        ) const { return 1; }
+  virtual void a (char const *) const { return;   }
+  virtual int  b (void        ) const { return 2; }
+  virtual void b (char const *) const { return;   }
+};
+class Derived : public Base {
+ public:
+	// The compiler decorates the name, the scope, and the argument lists to produce internal names for it and the linker to use.
+	// Overloading solely on return value is a bit too subtle, and thus isn’t allowed in C++.
+
+  //! void a (void) const{ } // Cannot change return type
+	// If VOID Derived::a (VOID) had been placed in VTABLE instead INT Base::a (VOID) this would lead to conflict with preparations in stack before calling.
+
+  int b (int) const { return 4; } // Change argument list
+	// The new version isn’t actually overriding an existing virtual function interface
+	// The compiler will not add int b (int) in VTABEL.
+
+};
+int main(void) {
+	Derived d;
+  d.a(); d.a("a");    // Base version available
+	// d.b(); d.b("b"); // Base versions hidden
+  d.b(2);
+
+  Base& br = d;       // Upcast
+  br.a(); br.a("a");  // Base version available
+	br.b(); br.b("b");  // Base version available
+  //! br.b(2);	      // Derived version unavailable
+}  
+#endif
+// Polymorphism 3 destructors new delete upcast
+#if 0
+
+class MyClass {
+public:
+  MyClass(void) { }
+  ~MyClass(void) { } // base object destructor
+};
+  
+int main() {
+  MyClass* p = new MyClass();
+  delete p;
+}
+
+/*
+MyClass::MyClass() [base object constructor]:
+  push rbp
+  mov rbp, rsp
+  mov QWORD PTR [rbp-8], rdi
+  nop
+  pop rbp
+  ret
+MyClass::~MyClass() [base object destructor]:
+  push rbp
+  mov rbp, rsp
+  mov QWORD PTR [rbp-8], rdi
+  nop
+  pop rbp
+  ret
+main:
+  push rbp
+  mov rbp, rsp
+  push rbx
+  sub rsp, 24
+  mov edi, 1
+  call operator new(unsigned long)
+  mov rbx, rax
+  mov rdi, rbx
+  call MyClass::MyClass() [complete object constructor]
+  mov QWORD PTR [rbp-24], rbx
+  mov rbx, QWORD PTR [rbp-24]
+  test rbx, rbx
+  je .L4
+  mov rdi, rbx
+  call MyClass::~MyClass() [complete object destructor]
+  mov rdi, rbx
+  call operator delete(void*)
+.L4:
+  mov eax, 0
+  add rsp, 24
+  pop rbx
+  pop rbp
+  ret
+*/
+
+class MyClass {
+public:
+  MyClass(void) { }
+  virtual ~MyClass(void) { } // base object destructor 
+};
+  
+int main() {
+  MyClass* p = new MyClass();
+  delete p;
+}
+
+/*
+
+MyClass::MyClass() [base object constructor]:
+  push rbp
+  mov rbp, rsp
+  mov QWORD PTR [rbp-8], rdi
+  mov edx, OFFSET FLAT:vtable for MyClass+16
+  mov rax, QWORD PTR [rbp-8]
+  mov QWORD PTR [rax], rdx
+  nop
+  pop rbp
+  ret
+MyClass::~MyClass() [base object destructor]:
+  push rbp
+  mov rbp, rsp
+  mov QWORD PTR [rbp-8], rdi
+  mov edx, OFFSET FLAT:vtable for MyClass+16
+  mov rax, QWORD PTR [rbp-8]
+  mov QWORD PTR [rax], rdx
+  nop
+  pop rbp
+  ret
+MyClass::~MyClass() [deleting destructor]:
+  push rbp
+  mov rbp, rsp
+  sub rsp, 16
+  mov QWORD PTR [rbp-8], rdi
+  mov rax, QWORD PTR [rbp-8]
+  mov rdi, rax
+  call MyClass::~MyClass() [complete object destructor]
+  mov rax, QWORD PTR [rbp-8]
+  mov rdi, rax
+  call operator delete(void*)
+  leave
+  ret
+main:
+  push rbp
+  mov rbp, rsp
+  push rbx
+  sub rsp, 24
+  mov edi, 8
+  call operator new(unsigned long)
+  mov rbx, rax
+  mov rdi, rbx
+  call MyClass::MyClass() [complete object constructor]
+  mov QWORD PTR [rbp-24], rbx
+  cmp QWORD PTR [rbp-24], 0
+  je .L5
+  mov rax, QWORD PTR [rbp-24]
+  mov rax, QWORD PTR [rax]
+  add rax, 8
+  mov rax, QWORD PTR [rax]
+  mov rdx, QWORD PTR [rbp-24]
+  mov rdi, rdx
+  call rax
+.L5:
+  mov eax, 0
+  add rsp, 24
+  pop rbx
+  pop rbp
+  ret
+vtable for MyClass:
+  .quad 0
+  .quad typeinfo for MyClass
+  .quad MyClass::~MyClass() [complete object destructor]
+  .quad MyClass::~MyClass() [deleting destructor]
+
+typeinfo for MyClass:
+  .quad vtable for __cxxabiv1::__class_type_info+16
+  .quad typeinfo name for MyClass
+typeinfo name for MyClass:
+  .string "7MyClass"
+
+*/
+
+/*
+	В таблицу добавляется complete. 
+	Где сам complete? 
+	В deleting вызывается complete.
+	Почему complete вместо base?
+	Зачем в деструкторе обновляется vptr, если в деструкторах используется раннее связывание?
+
+	D2: [base object dtor]        создаётся пользователем
+
+	.set D1, D2
+
+	D0: [deleting dtor]
+		call D1     
+		delete
+
+	main:
+
+	stack
+		call D1 
+
+	heap
+		call vtable + 16 + 8
+		
+	таблица
+	.quad 0
+	.quad typeinfo
+	.quad D0 [deleting dtor] 
+	.quad D1 [complete dtor]
+
+
+
+	<ctor-dtor-name>	
+	::= C1   # complete object constructor
+	::= C2   # base object constructor
+	::= C3   # complete object allocating constructor
+
+	::= D0   # deleting destructor
+	::= D1   # complete object destructor
+	::= D2   # base object destructor      пользовать может написать его
+*/
+
+
+class Base {
+public:
+  ~Base (void) { } 
+};
+
+class Derived : public Base {
+public:
+	~Derived (void) { }
+};
+
+int main (void) {
+  //Derived *d = new Derived; // easy
+  //delete d;
+
+  Base *b = 0 ;
+  b = new Derived;  // Upcast 
+  delete b;
+	// call Base::~Base() [complete object destructor] :-(  
+  // call operator delete(void*)
+  return 0;
+}
+
+class Base {
+public:
+  virtual ~Base (void) { } 
+};
+	//vtable for Base:
+	//.quad 0
+	//.quad typeinfo for Base
+	//.quad Base::~Base() [complete object destructor]
+	//.quad Base::~Base() [deleting destructor]
+
+class Derived : public Base {
+public:
+	virtual ~Derived (void) { }
+};
+	//vtable for Derived:
+ // .quad 0
+ // .quad typeinfo for Derived
+ // .quad Derived::~Derived() [complete object destructor]
+ // .quad Derived::~Derived() [deleting destructor]
+
+int main (void) {
+  //Derived *d = new Derived; // easy
+  //delete d;
+
+  Base *b = 0;
+  b = new Derived; // Upcast
+  delete b; // calls the derived-class destructor followed by the base-class destructor, which is the behavior we desire
+	// call rdx :-)  
+		// Derived::~Derived() [deleting destructor]
+			// call Derived::~Derived() [complete object destructor]   
+			// call operator delete(void*)
+
+  return 0;
+}
+
+#endif
+// Polymorphism 4 covariant return types 1
+#if 0
+#include <iostream>
+class Base {
+public: 
+  Base(void) { }
+	virtual Base       * getThis   (void) { return this; }
+	        char const * function1 (void) { return "B";  }
+	virtual char const * function2 (void) { return "Bv"; }
+};
+
+class Derived : public Base {
+public:
+  Derived (void) { }
+	/*virtual*/ Derived    * getThis   (void) { return this; }
+	// the overridden version of the function may return a pointer or reference to a class derived from what the base returns
+	            char const * function1 (void) { return "D"; }
+	/*virtual*/ char const * function2 (void) { return "Dv"; }
+};
+
+int main(void) {
+	Derived d; 
+  Base* bp (&d);
+	
+  //std::cout << 
+		bp->getThis() 
+	// Base::getThis(void) is a virtual
+		// Base::getThis(void) returns a Base*
+		// Derived::getThis(void) returns a Derived*
+		// Derived : public Base
+		// therefore the replacing the return type Base* with Derived* in definition of a virtual function is ok 
+  // Derived::getThis(void) is called via VPTR
+	// call VPTR
+
+		                 ->          function1() 
+	// Base::getThis(void) returns a Base*
+  // /* Base* */     
+	// Base::function1(void) isn't a virtual
+	// Base::function1(void) is called
+  // /* Base* */     ->    Base::function1(); 
+	
+	// Derived::getThis(void) returns the Derived* 
+  // Derived : public Base
+	// therefore the upcasting the Derived* to a Base* is ok
+  // /* Derived* */  ->    Base::function1(); 
+  // /* Base*    */  ->          function1();
+		//<< std::endl
+		; 
+
+	//std::cout << 
+		bp->getThis()
+	// Base::getThis(void) is a virtual
+		// Base::getThis(void) returns a Base*
+		// Derived::getThis(void) returns a Derived*
+		// Derived : public Base
+		// therefore the replacing the return type Base* with Derived* in definition of a virtual function is ok 
+  // Derived::getThis(void) is called via VPTR
+	// call VPTR
+
+		                 ->    function2() 
+	// Base::getThis(void) returns the Base*
+  // /* Base* */     
+	// Base::function2(void) is a virtual
+	// Derived::function2(void) is called via VPTR
+	// call VPTR
+
+	// Derived::getThis(void) returns the Derived* 
+  // Derived : public Base
+	// therefore the upcasting the Derived* to a Base* is ok
+	// /* Derived* */  ->    call VPTR; 
+  // /* Base*    */  ->    call VPTR; 
+		//<< std::endl
+		;
+
+	Derived* dp;
+	dp = dynamic_cast<Derived*> ( bp->getThis() );
+
+	return 0;
+}
+#endif
+// Polymorphisim 4 covariant return types 2
+#if 0
+#include <iostream>
+#include <string>
+using namespace std;
+
+class PetFood {
+public:
+  virtual string foodType(void) const = 0;
+};
+
+class Pet {
+public:
+  virtual PetFood* eats(void) = 0;
+};
+
+class Bird : public Pet {
+public:
+  class BirdFood : public PetFood {
+  public:
+    string foodType(void) const {return "Bird food";}
+  };
+private:
+  BirdFood bf;
+public:
+  PetFood* eats(void) { return &bf; }//Bird::eats(void) upcasts the BirdFood to a PetFood
+};
+
+class Cat : public Pet {
+public:
+  class CatFood : public PetFood {
+  public:
+    string foodType(void) const {return "Cat food";}
+  };
+private:
+  CatFood cf;
+public:
+  CatFood* eats(void) { return &cf; }
+  // Cat     : public Pet
+  // PetFood * Pet::eats (void)
+	// CatFood : public PetFood
+	// CatFood * Cat::eats (void)
+  // If virtual function is returning a pointer or a reference to a base class, then the overridden version may return a pointer or reference to a class derived from what the parent function returns.
+	// The contract is still fulfilled; eats(void) always returns a PetFood*.
+};
+
+int main (void) {
+  Bird b; 
+	Cat c;
+  Pet* ppb = &b;
+  Pet* ppc = &c;
+
+  std::cout << ppc->eats() -> foodType() << '\n';
+	std::cout << ppb->eats() -> foodType() << '\n';
+
+	Bird::BirdFood* bf;
+	//!  bf = b.eats();// Cannot return the exact type
+  bf = dynamic_cast<Bird::BirdFood*> (b.eats());//downcast
+	bf = dynamic_cast<Bird::BirdFood*> (ppb->eats());
+	Cat::CatFood* cf;
+	cf = c.eats();// Can return the exact type
+	cf = dynamic_cast<Cat::CatFood*> (ppc->eats());//downcast
+
+	return 0;
+}
+#endif
+
+// question
+#if 0
+// static or friend?
+// new operator - only static?
+// binary operator - only friend?
+
+#include <iostream>
+using namespace std;
+
+class Object { 
+  int data;
+
+public:
+
+  virtual ~Object (void) { 	int var = 555; var++; }
+  
+  // friend ostream& operator<< (ostream& os, const Object & o); // function doesn't belong to a class 
+  // friend ostream& operator<< (ostream& os, const Object & o) { return os; } // function doesn't belong to a class
+  
+  //! ostream& operator<< (ostream& os, const Object & o) { return os; } // оператор класса must have exactly 1 argument (тут 3)
+  //! static ostream& operator<< (ostream& os, const Object & o) { return os; } // оператор класса must have exactly 1 argument (тут 2) // must be either a non-static member function (тогда будет must have exactly 1 argument) or a non-member function (тогда должен быть friend иначе будет рассматриваться как member)
+  
+  // void operator delete ( void * ptr) { }
+  static void operator delete ( void * ptr) { } // operator delete () is static by default 
+
+	//attention : operator new here is by default and works with heap, therefore here will be a leak of memory.
+};
+
+// ostream& operator<< (ostream& os, const Object & o) { return os; } 
+
+class Derived : public Object{ 
+
+public:
+  virtual ~Derived (void) { int var = 111; var++; }
+  static void operator delete (void * p) { }
+};
+
+int main() {
+	Object *op = new Derived;
+	delete op;
+
+  return 0;
+}
+#endif
+
+// Template function
+#if 0
+#include <iostream>
+// A function template
+template <typename T> // (or template <class T>) the template parameter declaration with one template type (or placeholder type) named T
+T max(T x, T y) {	// the function template definition for max <T>
+	return (x > y) ? x : y; 
+}
+// Because this function template has one template type named T, we’ll refer to it as max <T>.
+
+template <typename T> // a declaration for function template
+T max2(T x, T y);
+
+template <typename T>
+T max2(T x, T y) {	// the function template definition for max2 <T>
+	return (x > y) ? x : y; 
+}
+
+
+int main(void) {
+	max <int> (1,2);// function call with a template argument, which specifies the actual type that will be used in place of template type T
+	max ('a','b');//  template argument deduction : the compiler will attempt to deduce an actual type from the function arguments
+	max2 <int> (1,2);
+	// The process of creating functions (with specific types) from function templates (with template types) is called function template instantiation
+	// When this process happens due to a function call, it’s called implicit instantiation. 
+	// An instantiated function is often called a function instance (instance for short) or a template function.
+}
+#endif
+// Template class
+#if 0
+template <class T>
+class Array {// Array - template's class name.
+  T arr[5];
+
+ public:
+  T& operator[](int index);
+  void func1(void);
+};
+
+template <class T>
+T& Array <T> ::operator[] (int index) { // simply non-inline function
+// Any reference to a template’s class name must be accompanied by its template
+// argument list. You can imagine that internally, the class name is being
+// decorated with the arguments in the template argument list to produce a
+// unique class name identifier for each template instantiation.
+  return arr[index];
+}
+
+template <class T>
+void Array<T>::func1(void) { }
+
+int main() {
+  Array<int> ia;
+  // the compiler expands the Array template (this is called instantiation), to
+  // create new generated classes, which you can think of as Array_int.
+}
+
+#endif
+// Templates, dependent name (dependent datatype) 
+#if 0
+// #include <iostream>
+
+template<typename T>
+class MFPointer {
+public:
+  typedef T* ptype;
+	class iterator {
+		;
+	};
+};
+
+template<typename T>
+void funda(T tx) {
+  // MFPointer<T>::ptype m;       //Wrong declaration
+  typename MFPointer<T>::ptype m;   //Right declaration
+  typename MFPointer<T>::iterator i;
+}
+
+//the member “ptype” is dependent scope datatype. This is defined inside a Template class MFPointer<T> and actual datatype (T*) depends on template parameter T. For instance, for MFPointer<int>, the ptype shall become int* and for MFPointer<float>, the ptype will be float*.
+//To use or access the ptype, the program shall use an expression with scope resolution operator, like, “MFPointer<int>::ptype”.
+//The declaration of “m” makes sense only if Pointer<T>::ptype is a datatype, however, there is no guarantee for this. This is because Pointer<T>::ptype may also be a static data member or enum. To ensure C++ compiler that program knows that this is a datatype and not anything else (a static variable or enum variable or member variable), the keyword typename must precede the declaration . This keyword gives guarantee that iterator is a type.
+
+class Object { 
+  public:
+    class iterator {
+      
+    };
+};
+
+template <typename T> void fv ( void ) {
+  typename T::iterator it;
+}
+
+template <typename T> void fr ( T & r ) {
+  typename T::iterator it;
+}
+
+template <typename T>
+class TObject { 
+  public:
+    class iterator {
+      T data;
+    };
+};
+
+
+int main(void) {
+	funda(1);
+
+  Object o;
+  fv <Object> ();
+  fr <Object> (o);
+  fr (o);
+
+  TObject <int> to;
+  fv < TObject<int> > ();
+  fr <TObject <int> > (to);
+  fr (to);
+
+}
+#endif
+// Templates, dependent name (dependent datatype) 2
+#if 0
+
+template <typename T>
+class TObject { 
+  public:
+    class iterator {
+      T data;
+    };
+    
+		iterator foo1( iterator& it) {return it; }
+    typename TObject<T>::iterator foo2( typename TObject<T>::iterator& it) {return it; }
+    
+		iterator foo3( iterator& it);
+    typename TObject<T>::iterator foo4( typename TObject<T>::iterator& it);
+};
+
+template <typename T>
+typename TObject<T>::iterator TObject<T>::foo3 ( iterator& it) { //???
+  return it;
+}
+
+template <typename T>
+typename TObject<T>::iterator TObject<T>::foo4 (typename TObject<T>::iterator& it) { //???
+  return it;
+}
+//////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+typename TObject<T>::iterator function (typename TObject<T>::iterator& it) {
+	return it;
+}
+
+int main(void) {
+
+}
+#endif
+
 
 // inner class
 #if 0
@@ -4346,13 +5019,4 @@ int main() {
 }
 #endif
 
-#endif
-//
-#if 0
-#include <iostream>
-
-int main() {
-
-	return 0;
-}
 #endif

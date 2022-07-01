@@ -108,10 +108,11 @@ SUBLIME
 	“   Opening double quote                    alt+0147
 	”   Closing double quote                    alt+0148
 
-	Экранирование символов — механизм, имеющийся в текстовых языках и протоколах. Он служит, чтобы символы, которые считаются служебными и имеют особое значение, этого значения лишить и объявить «просто символами». Нам нужно двойное экранирование: для ОС (строка с пробелами закавычивается) и для Си (перед кавычкой слэш).
+	Экранирование символов — механизм, имеющийся в текстовых языках и протоколах. Он служит, чтобы символы, которые считаются служебными и имеют особое значение, этого значения лишить и объявить «просто символами». 
+	Нам нужно двойное экранирование: для ОС (строка с пробелами закавычивается) и для Си (перед кавычкой слэш).
 	system("gcc \"C:/Folder/My Folder/example.c\" ");
 	Точно так же экранируется и обратный слэш, если вдруг потребуется.
-	system("gcc \"C:\\Folder\\My Folder\\example.c\"" );
+	system("gcc \"C:\\Folder\\My Folder\\example.c\" " );
 
 	cd D:\books
 	gcc C:\Cex\test.c -o C:\Cex\test.exe
@@ -140,10 +141,38 @@ SUBLIME
 	system("gcc \"C:/GD/books/Coding/MinGW/CUBEC/test.c\" ");
 	system("a");
 
+	Настройка для создания исполняемого файла из саблайма V2.
+	tools>build system
+	{
+    "cmd": 
+    [
+        "g++", "-g", "-std=gnu++03", "-Wall", "-fno-elide-constructors", "-S", "${file}", "-o", "${file_base_name}.s",
+        "&&",
+        "g++", "-g", "-std=gnu++03", "-Wall", "-fno-elide-constructors", "${file_base_name}.s", "-o", "${file_base_name}.exe",
+    ],
+    "file_regex": 
+        "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+    "working_dir": 
+        "${file_path}",
+    "selector": 
+        "source.c, source.c++",
+    "shell": 
+        true,
+    "variants": 
+    [
+        {
+            "name": "Run",
+            "cmd": ["start", "cmd", "/k", "${file_path}/${file_base_name}.exe"],
+            "shell": true
+        }
+    ]
+}
+
 Введение. 
 	
 	Разбито на 7 абзацев.
-	I now assert that at long last we have assembled a piece of hardware that we can honestly call a computer. To be sure, it is a primitive computer, but it is a computer nonetheless. What makes the difference is the conditional jump. Controlled repetition or looping is what separates computers from calculators.//Petzold 
+	I now assert that at long last we have assembled a piece of hardware that we can honestly call a computer. To be sure, it is a primitive computer, but it is a computer nonetheless. 
+	What makes the difference is the conditional jump. Controlled repetition or looping is what separates computers from calculators.//Petzold 
 	The C language facilitates a structured and disciplined approach to computer-program design. We then use the structured approach throughout the remainder of the C portion of the text.//Deitel
 
 	//1  
@@ -2048,7 +2077,7 @@ Unconditional Branching with goto
 		#include <stdio.h>
 		#include <time.h>
 		int main ( void ){
-			int i = 0;// вредно помещать i внутрь while 
+			time_t i = 0; //
 			while (1){
 				if (i != time(NULL) ){
 					i = time(NULL); 
